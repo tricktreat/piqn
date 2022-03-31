@@ -31,6 +31,8 @@ def process_configs(target, arg_parser):
                 waittime = 240
             if "ontonotes" in run_args.dataset_path:
                 waittime = 360
+            if "msra" in run_args.dataset_path:
+                waittime = 300
             
         if run_args.seed==-1:
             run_args.seed=random.randint(0,1000)
