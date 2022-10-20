@@ -91,7 +91,10 @@ def _add_common_args(arg_parser):
     arg_parser.add_argument('--use_entity_common_embedding', action='store_true', default=False)
     arg_parser.add_argument('--inlcude_subword_aux_loss', action='store_true', default=False)
     arg_parser.add_argument('--last_layer_for_loss', type=int, default=3)
-
+    arg_parser.add_argument('--use_masked_lm', action='store_true', default=False)
+    arg_parser.add_argument('--split_epoch', type=int, default=0, help="")
+    arg_parser.add_argument('--use_aux_loss', action='store_true', default=False)
+    arg_parser.add_argument('--repeat_gt_entities', type=int, default=-1, help="")
 
 
     
@@ -145,12 +148,12 @@ def train_argparser():
     arg_parser.add_argument('--loss_class_weight', type=float, default=2.0)
 
     
-    arg_parser.add_argument('--use_aux_loss', action='store_true', default=False)
+    
     arg_parser.add_argument('--deeply_weight', type=str, help="", default="same")
-    arg_parser.add_argument('--use_masked_lm', action='store_true', default=False)
-    arg_parser.add_argument('--repeat_gt_entities', type=int, default=-1, help="")
+    
+    
 
-    arg_parser.add_argument('--split_epoch', type=int, default=0, help="")
+    
     arg_parser.add_argument('--copy_weight', action='store_true', default=False)
 
     _add_common_args(arg_parser)

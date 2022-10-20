@@ -115,13 +115,6 @@ class Criterion(nn.Module):
         targets dicts must contain the key "labels" containing a tensor of dim [nb_target_boxes]
         """
         assert 'pred_logits' in outputs
-        # src_logits = outputs['pred_logits']
-
-        # idx = self._get_src_permutation_idx(indices)
-        # target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
-        # target_classes = torch.full(src_logits.shape[:2], self.entity_type_count,
-        #                             dtype=torch.int64, device=src_logits.device)
-        # target_classes[idx] = target_classes_o
 
 
         src_logits = outputs['pred_logits']
@@ -197,16 +190,6 @@ class Criterion(nn.Module):
         gt_right = targets["gt_right"].split(targets["sizes"], dim=0)
         target_spans_right = torch.cat([t[i] for t, (_, i) in zip(gt_right , indices)], dim=0)
 
-
-        # src_left_boundary_logp = torch.log(1e-25 + src_spans_left)
-        # src_right_boundary_logp = torch.log(1e-25 + src_spans_right)
-
-
-        # left_nll_loss = F.nll_loss(src_left_boundary_logp, target_spans_left, reduction='none')
-        # right_nll_loss = F.nll_loss(src_right_boundary_logp, target_spans_right, reduction='none')
-
-        # loss_boundary = left_nll_loss + right_nll_loss
-
         left_onehot = torch.zeros([target_spans_left.size(0), src_spans_left.size(1)], dtype=torch.float32).to(device=target_spans_left.device)
         left_onehot.scatter_(1, target_spans_left.unsqueeze(1), 1)
     
@@ -216,18 +199,11 @@ class Criterion(nn.Module):
         left_nll_loss = F.binary_cross_entropy(src_spans_left, left_onehot, reduction='none')
         right_nll_loss = F.binary_cross_entropy(src_spans_right, right_onehot, reduction='none')
 
-        # left_nll_loss = sigmoid_focal_loss(src_spans_left, left_onehot)
-        # right_nll_loss = sigmoid_focal_loss(src_spans_right, right_onehot)
-
-
         # NIL object boundary
         loss_boundary = (left_nll_loss + right_nll_loss) * token_masks
 
         losses = {}
         losses['loss_boundary'] = loss_boundary.sum() / num_spans
-        # losses['loss_boundary'] = loss_boundary.mean(1).sum() / num_spans
-        
-
         return losses
 
     def _get_src_permutation_idx(self, indices):

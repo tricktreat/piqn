@@ -115,15 +115,6 @@ class BaseTrainer:
         logs = self._log_paths[dataset_label]
         util.append_csv(logs[data_label], *data)
 
-    # def _save_best(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, optimizer: Optimizer,
-    #                accuracy: float, iteration: int, label: str, extra=None):
-    #     if accuracy > self._best_results[label]:
-    #         self._logger.info("[%s] Best model in iteration %s: %s%% accuracy" % (label, iteration, accuracy))
-    #         self._save_model(self._save_path, model, tokenizer, iteration,
-    #                          optimizer=optimizer if self.args.save_optimizer else None,
-    #                          save_as_best=True, name='model_%s' % label, extra=extra)
-    #         self._best_results[label] = accuracy
-
     def _save_model(self, save_path: str, model: PreTrainedModel, tokenizer: PreTrainedTokenizer,
                     iteration: int, optimizer: Optimizer = None, save_as_best: bool = False,
                     extra: dict = None, include_iteration: int = True, name: str = 'model'):

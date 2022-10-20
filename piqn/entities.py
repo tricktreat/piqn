@@ -605,7 +605,3 @@ class DistributedIterableDataset(IterableTorchDataset):
     @property
     def entity_count(self):
         return self.statistic["entity_count"]
-
-    # @property
-    # def relation_count(self):
-    #     return len(self._relations)

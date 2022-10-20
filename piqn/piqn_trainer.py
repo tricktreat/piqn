@@ -52,20 +52,6 @@ class PIQNTrainer(BaseTrainer):
 
     def __init__(self, args: argparse.Namespace):
         super().__init__(args)
-
-        # byte-pair encoding
-        
-        # if self.args.model_type == "roberta_piqn":
-        #     self._tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_path,
-        #                                                 local_files_only = True,
-        #                                                 use_fast = False,
-        #                                                 do_lower_case=args.lowercase,
-        #                                                 cache_dir=args.cache_path)
-        # elif self.args.model_type == "piqn":
-        #     self._tokenizer = BertTokenizer.from_pretrained(args.tokenizer_path,
-        #                                                 local_files_only = True,
-        #                                                 do_lower_case=args.lowercase,
-        #                                                 cache_dir=args.cache_path)
         self._tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_path,
                                                     local_files_only = True,
                                                     use_fast = False,
@@ -189,22 +175,11 @@ class PIQNTrainer(BaseTrainer):
         # create optimizer
         optimizer_params = self._get_optimizer_params(model)
         optimizer = AdamW(optimizer_params, lr=args.lr, weight_decay=args.weight_decay, correct_bias=False)
-        # create scheduler
-        # scheduler = transformers.get_constant_schedule_with_warmup(optimizer,
-        #                                                     num_warmup_steps=args.lr_warmup * updates_total)
-
-        # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1,patience=3,threshold=0.0001, threshold_mode='rel', verbose=True)
-        # scheduler = transformers.get_linear_schedule_with_warmup(optimizer,
-        #                                                          num_warmup_steps=args.lr_warmup * updates_total_stage_one,
-        #                                                          num_training_steps=updates_total_stage_one)
         scheduler = get_linear_schedule_with_warmup_two_stage(optimizer,
                                                             num_warmup_steps_stage_one = args.lr_warmup * updates_total_stage_one,
                                                             num_training_steps_stage_one = updates_total_stage_one,
                                                             num_warmup_steps_stage_two = args.lr_warmup * updates_total_stage_two,
                                                             num_training_steps_stage_two = updates_total_stage_two)
-        # self.scheduler = scheduler
-        # create loss function
-        # entity_criterion = torch.nn.CrossEntropyLoss(reduction='none')
 
 
         compute_loss = PIQNLoss(input_reader.entity_type_count, self._device, model, optimizer, scheduler, args.max_grad_norm, args.nil_weight, args.match_class_weight, args.match_boundary_weight, args.loss_class_weight, args.loss_boundary_weight, args.type_loss, solver = args.match_solver, match_warmup_epoch = args.match_warmup_epoch)
@@ -347,12 +322,6 @@ class PIQNTrainer(BaseTrainer):
 
         word_size = 1
         eval_sampler = None
-        # assert len(gt) == len(pred)
-        # if args.local_rank != -1:
-        #     word_size = dist.get_world_size()
-        #     eval_sampler = torch.utils.data.distributed.DistributedSampler(dataset, num_replicas = word_size,rank = args.local_rank)
-
-
 
         if isinstance(dataset, Dataset):
             data_loader = DataLoader(dataset, batch_size=args.eval_batch_size, shuffle=False, drop_last=False,
@@ -464,10 +433,6 @@ class PIQNTrainer(BaseTrainer):
         self._logger.info("Entities:")
         for e in input_reader.entity_types.values():
             self._logger.info(e.verbose_name + '=' + str(e.index))
-
-        # self._logger.info("Relations:")
-        # for r in input_reader.relation_types.values():
-        #     self._logger.info(r.verbose_name + '=' + str(r.index))
 
         for k, d in input_reader.datasets.items():
             self._logger.info('Dataset: %s' % k)

@@ -163,17 +163,9 @@ class JsonInputReader(BaseInputReader):
             for k, v in json.load(open(types_path.replace("types", "pos"))).items():
                 if v > 15:
                     self.POS_MAP.append(k)
-        # self.POS_MAP = list({ for k, v in json.load(open(types_path.replace("types", "pos"))).items()}.keys())
         
 
     def load_wordvec(self, filename):
-        # word2vec = {}
-        # with open(filename, "r") as f:
-        #     if "glove" not in filename:
-        #         f.readline()
-        #     for line in f:
-        #         fields = line.strip().split(' ')
-        #         word2vec[fields[0]] = list(float(x) for x in fields[1:])
         self.embedding_weight = np.random.rand(len(self.word2inx),len(next(iter(self.word2vec.values()))))
         for word, inx in self.word2inx.items():
             if word in self.word2vec:
@@ -261,16 +253,8 @@ class JsonInputReader(BaseInputReader):
         doc_encoding = [self._tokenizer.convert_tokens_to_ids(special_tokens_map['cls_token'])]
         seg_encoding = [0]
         char_encoding = []
-        # jtokens = list(filter(lambda x:x!='', jtokens))
-        # doc = nlp(" ".join(jtokens))
-        # poss = [token.pos_ for token in doc]
-        # poss = ["PUNCT" for token in jtokens]
 
         poss = [self.POS_MAP.index(pos) if pos in self.POS_MAP else self.POS_MAP.index("<UNK>") for pos in jpos]
-
-        # for token in doc:
-        #     print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
-        #             token.shape_, token.is_alpha, token.is_stop)
 
         # parse tokens
         for token_phrase in ltokens:

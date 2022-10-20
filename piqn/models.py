@@ -15,8 +15,6 @@ from transformers.activations import ACT2FN
 from piqn import sampling
 from piqn import util
 
-# torch.autograd.set_detect_anomaly(True)
-# torch.use_deterministic_algorithms(True)
 
 class EntityAwareBertConfig(BertConfig):
     def __init__(self, entity_queries_num = None, entity_emb_size = None, mask_ent2tok = True, mask_tok2ent = False, mask_ent2ent = False, mask_entself = False, entity_aware_attention = False, entity_aware_intermediate = False, entity_aware_selfout = False, entity_aware_output = True, use_entity_pos = True, use_entity_common_embedding = False, **kwargs):
@@ -64,27 +62,6 @@ class EntityEmbeddings(nn.Module):
 class EntityAwareBertSelfAttention(nn.Module):
     def __init__(self, config):
         super().__init__()
-
-        # self.num_attention_heads = config.num_attention_heads
-        # self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
-        # self.all_head_size = self.num_attention_heads * self.attention_head_size
-        # self.config = config
-        
-        
-        # self.query = nn.Linear(config.hidden_size, self.all_head_size)
-        # self.key = nn.Linear(config.hidden_size, self.all_head_size)
-        # self.value = nn.Linear(config.hidden_size, self.all_head_size)
-
-        # if config.entity_aware_attention:
-        #     self.entity_w2e_query = nn.Linear(config.hidden_size, self.all_head_size)
-        #     self.entity_e2w_query = nn.Linear(config.hidden_size, self.all_head_size)
-        #     self.entity_e2e_query = nn.Linear(config.hidden_size, self.all_head_size)
-        # else:
-        #     self.entity_w2e_query = self.query
-        #     self.entity_e2w_query = self.query
-        #     self.entity_e2e_query = self.query
-
-        # self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
 
         self.num_attention_heads = config.num_attention_heads
         self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
@@ -178,52 +155,7 @@ class EntityAwareBertSelfAttention(nn.Module):
         context_layer = context_layer.view(*new_context_layer_shape)
 
         return context_layer[:, :context_size, :], context_layer[:, context_size:, :]
-    # def forward(self, token_hidden_states, entity_hidden_states, attention_mask, query_pos = None):
-    #     context_size = token_hidden_states.size(1)
-
-    #     pos_aware_entity_hidden_states = entity_hidden_states
-    #     if self.config.use_entity_pos:
-    #         pos_aware_entity_hidden_states = entity_hidden_states + query_pos
-    #     # query specific
-    #     w2w_query_layer = self.transpose_for_scores(self.query(token_hidden_states))
-    #     w2e_query_layer = self.transpose_for_scores(self.entity_w2e_query(token_hidden_states))
-    #     e2w_query_layer = self.transpose_for_scores(self.entity_e2w_query(pos_aware_entity_hidden_states))
-    #     e2e_query_layer = self.transpose_for_scores(self.entity_e2e_query(pos_aware_entity_hidden_states))
-
-
-    #     # key unified transformered
-    #     key_layer = self.transpose_for_scores(self.key(torch.cat([token_hidden_states, pos_aware_entity_hidden_states], dim=1)))
-
-    #     w2w_key_layer = key_layer[:, :, :context_size, :]
-    #     e2w_key_layer = key_layer[:, :, :context_size, :]
-    #     w2e_key_layer = key_layer[:, :, context_size:, :]
-    #     e2e_key_layer = key_layer[:, :, context_size:, :]
-
-    #     w2w_attention_scores = torch.matmul(w2w_query_layer, w2w_key_layer.transpose(-1, -2))
-    #     w2e_attention_scores = torch.matmul(w2e_query_layer, w2e_key_layer.transpose(-1, -2))
-    #     e2w_attention_scores = torch.matmul(e2w_query_layer, e2w_key_layer.transpose(-1, -2))
-    #     # w2e_attention_scores = torch.zeros(e2w_attention_scores.size()).transpose(-1, -2).to(e2w_attention_scores.device) - 1e30
-    #     e2e_attention_scores = torch.matmul(e2e_query_layer, e2e_key_layer.transpose(-1, -2))
-
-    #     word_attention_scores = torch.cat([w2w_attention_scores, w2e_attention_scores], dim=3)
-    #     entity_attention_scores = torch.cat([e2w_attention_scores, e2e_attention_scores], dim=3)
-    #     attention_scores = torch.cat([word_attention_scores, entity_attention_scores], dim=2)
-
-    #     attention_scores = attention_scores / (self.attention_head_size**0.5)
-    #     attention_scores = attention_scores + attention_mask
-
-    #     attention_probs = F.softmax(attention_scores, dim=-1)
-    #     attention_probs = self.dropout(attention_probs)
-
-    #     # value unified transformered
-    #     value_layer = self.transpose_for_scores( self.value(torch.cat([token_hidden_states, entity_hidden_states], dim=1)))
-    #     context_layer = torch.matmul(attention_probs, value_layer)
-
-    #     context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
-    #     new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
-    #     context_layer = context_layer.view(*new_context_layer_shape)
-
-        # return context_layer[:, :context_size, :], context_layer[:, context_size:, :]
+    
 
 class EntityAwareBertSelfOutput(nn.Module):
     def __init__(self, config):
@@ -241,21 +173,6 @@ class EntityAwareBertSelfOutput(nn.Module):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, token_self_output, entity_self_output, token_hidden_states, entity_hidden_states):
-        # if self.config.entity_aware_selfout:
-        #     token_self_output = self.dense(token_self_output)
-        #     token_self_output = self.dropout(token_self_output)
-        #     token_self_output = self.LayerNorm(token_self_output + token_hidden_states)
-        #     entity_self_output = self.entity_dense(entity_self_output)
-        #     entity_self_output = self.dropout(entity_self_output)
-        #     entity_self_output = self.entity_LayerNorm(entity_self_output + entity_hidden_states)
-        #     hidden_states = torch.cat([token_self_output, entity_self_output], dim=1)
-        # else:
-        #     hidden_states = torch.cat([token_hidden_states, entity_hidden_states], dim=1)
-        #     all_self_output = torch.cat([token_self_output, entity_self_output], dim=1)
-        #     all_self_output = self.dense(all_self_output)
-        #     all_self_output = self.dropout(all_self_output)
-        #     hidden_states = self.LayerNorm(all_self_output + hidden_states)
-        
         # why? solved, code above also works
         token_self_output = self.dense(token_self_output)
         token_self_output = self.dropout(token_self_output)
@@ -281,8 +198,6 @@ class EntityAwareBertAttention(nn.Module):
 
     def forward(self, word_hidden_states, entity_hidden_states, attention_mask, query_pos = None):
         word_self_output, entity_self_output = self.self(word_hidden_states, entity_hidden_states, attention_mask, query_pos = query_pos)
-        # hidden_states = torch.cat([word_hidden_states, entity_hidden_states], dim=1)
-        # self_output = torch.cat([word_self_output, entity_self_output], dim=1)
         output = self.output(word_self_output, entity_self_output, word_hidden_states, entity_hidden_states)
         return output[:, : word_hidden_states.size(1), :], output[:, word_hidden_states.size(1) :, :]
 
@@ -306,8 +221,6 @@ class EntityAwareBertIntermediate(nn.Module):
             entity_hidden_states = self.entity_dense(entity_hidden_states)
         else:
             entity_hidden_states = self.dense(entity_hidden_states)
-        # hidden_states = torch.cat([token_hidden_states, entity_hidden_states], dim=1) 
-        # hidden_states = self.intermediate_act_fn(hidden_states)
         token_hidden_states = self.intermediate_act_fn(token_hidden_states)
         entity_hidden_states = self.intermediate_act_fn(entity_hidden_states)
 
@@ -356,8 +269,6 @@ class EntityAwareBertLayer(nn.Module):
         word_attention_output, entity_attention_output = self.attention(
             word_hidden_states, entity_hidden_states, attention_mask, query_pos = query_pos
         )
-        # intermediate_output = self.intermediate(word_attention_output, entity_attention_output)
-        # attention_output = torch.cat([word_attention_output, entity_attention_output], dim=1)
         token_intermediate_output, entity_intermediate_output = self.intermediate(word_attention_output, entity_attention_output)
         token_output, entity_output = self.output(token_intermediate_output, entity_intermediate_output, word_attention_output, entity_attention_output)
 
@@ -378,30 +289,6 @@ class EntityAwareBertEncoder(nn.Module):
             intermediate.append({"h_token": word_hidden_states, "h_entity": entity_hidden_states})
             # entity_hidden_states += ori_entity_hidden_states
         return word_hidden_states, entity_hidden_states, intermediate
-
-
-# class EntityTokenCrossAttention(nn.Module):
-#     def __init__(self, config):
-#         super().__init__()
-#         self.entity_attention = nn.MultiheadAttention(config.hidden_size, config.num_attention_heads, dropout=config.hidden_dropout_prob)
-#         self.entity_dropout = nn.Dropout(config.hidden_dropout_prob)
-#         self.entity_norm = nn.LayerNorm(config.hidden_size)
-    
-#     def forward(self, h_entity, query_pos):
-#         q = k = v = h_entity
-#         if query_pos is not None:
-#             q = k = h_entity + query_pos
-#         tgt = self.entity_attention(q.transpose(0, 1), k.transpose(0, 1), v.transpose(0, 1))[0].transpose(0, 1)
-#         tgt = h_entity + self.entity_dropout(tgt)
-#         h_entity = self.entity_norm(tgt)
-#         return h_entity
-        
-#         q = self.with_pos_embed(tgt, pos)
-#         k = v = src
-#         tgt2 = self.cross_attn(q.transpose(0, 1), k.transpose(0, 1), v.transpose(0, 1), key_padding_mask=~mask)[0].transpose(0, 1)
-#         tgt = tgt + self.dropout1(tgt2)
-#         tgt = self.norm1(tgt)
-
 
 class EntitySelfAttention(nn.Module):
     def __init__(self, config):
@@ -1003,7 +890,6 @@ class BertPIQN(PIQN):
     
     config_class = BertConfig
     base_model_prefix = "bert"
-    # base_model_prefix = "model"
     authorized_missing_keys = [r"position_ids"]
 
     def __init__(self, *args, **kwagrs):
@@ -1013,7 +899,6 @@ class RobertaPIQN(PIQN):
 
     config_class = RobertaConfig
     base_model_prefix = "roberta"
-    # base_model_prefix = "model"
     authorized_missing_keys = [r"position_ids"]
     
     def __init__(self, *args, **kwagrs):

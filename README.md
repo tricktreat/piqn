@@ -61,7 +61,7 @@ Note: You should edit this [line](https://github.com/tricktreat/piqn/blob/e161cf
 
 You can download our [checkpoints on ACE04 and ACE05](https://drive.google.com/drive/folders/1rIgz4gBn_Na3KjFa21dEvHDY03fekwv3?usp=sharing), or train your own model and then evaluate the model. Because of the limited space of Google Cloud Drive, we share the other models in Baidu Cloud Drive, please download at [this link (code: js9z)](https://pan.baidu.com/s/1ULV2XEobLv8-LlwjkIy5ig).
 ```bash
-python identifier.py eval --config configs/batch_eval.conf
+python piqn.py eval --config configs/batch_eval.conf
 ```
 
 If you use the checkpoints (ACE05 and ACE04) we provided, you will get the following results:
