@@ -5,7 +5,6 @@ import os
 import warnings
 from typing import List, Tuple, Dict
 
-import torch
 from sklearn.metrics import precision_recall_fscore_support as prfs
 from transformers import BertTokenizer
 
@@ -293,11 +292,7 @@ class Evaluator:
             gt_entities = doc.entities
             # if len(doc.encoding) > 512:
             #     continue
-            # convert ground truth relations and entities for precision/recall/f1 evaluation
             sample_gt_entities = [entity.as_tuple_token() for entity in gt_entities]
-
-            # if self._no_overlapping:
-            #     sample_gt_entities = self._remove_overlapping(sample_gt_entities)
 
             self._gt_entities.append(sample_gt_entities)
 
@@ -537,10 +532,6 @@ class Evaluator:
 
         tag_start = ' <span class="entity">'
         tag_start += '<span class="type">%s</span>' % entity_type
-
-        # ctx_before = self._text_encoder.decode(encoding[:start])
-        # e1 = self._text_encoder.decode(encoding[start:end])
-        # ctx_after = self._text_encoder.decode(encoding[end:])
 
         ctx_before = ""
         ctx_after = ""

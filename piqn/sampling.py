@@ -80,10 +80,6 @@ def create_train_sample(doc, random_mask = False, tokenizer = None, repeat_gt_en
     # context_masks = torch.tensor(seg_encoding, dtype=torch.bool)
     token_masks = torch.ones(token_count, dtype=torch.bool)
 
-    # also create samples_masks:
-    # tensors to mask entity/relation samples of batch
-    # since samples are stacked into batches, "padding" entities/relations possibly must be created
-    # these are later masked during loss computation
     context2token_masks = torch.stack(context2token_masks)
 
     if len(gt_entity_types) > 0:
@@ -97,19 +93,6 @@ def create_train_sample(doc, random_mask = False, tokenizer = None, repeat_gt_en
         gt_entity_spans_token = torch.zeros([1, 2], dtype=torch.long)
         gt_entity_masks = torch.zeros([1], dtype=torch.bool)
     
-    # entity_types_onehot = torch.zeros([gt_entity_types.shape[0], ent_type_count], dtype=torch.float32)
-    # entity_types_onehot.scatter_(1, gt_entity_types.unsqueeze(1), 1)
-    # # rel_type_count-1 no none relation
-    # entity_types_onehot = entity_types_onehot[:, 1:]  # all zeros for 'none' relation
-
-    
-    # left_onehot = torch.zeros([gt_entities_spans_token.shape[0], token_count], dtype=torch.float32)
-    # left_onehot.scatter_(1, gt_entities_spans_token[:, 0].unsqueeze(1), 1)
-
-
-    # right_onehot = torch.zeros([gt_entities_spans_token.shape[0], token_count], dtype=torch.float32)
-    # right_onehot.scatter_(1, gt_entities_spans_token[:, 1].unsqueeze(1), 1)
-
     return dict(encodings=encodings, context_masks=context_masks, seg_encoding = seg_encoding, context2token_masks=context2token_masks, token_masks=token_masks, 
                 pos_encoding = pos_encoding, wordvec_encoding = wordvec_encoding, char_encoding = char_encoding, token_masks_char = token_masks_char, char_count = char_count,
                 gt_types=gt_entity_types, gt_spans=gt_entity_spans_token, entity_masks=gt_entity_masks, gt_seq_labels = gt_seq_labels, meta_doc = doc)
